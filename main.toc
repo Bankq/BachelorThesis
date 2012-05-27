@@ -1,0 +1,29 @@
+\contentsline {chapter}{\numberline {第一章\hspace {0.3em}}引言}{1}{chapter.1}
+\contentsline {section}{\numberline {1.1}云计算}{1}{section.1.1}
+\contentsline {section}{\numberline {1.2}虚拟资源的部署}{1}{section.1.2}
+\contentsline {section}{\numberline {1.3}问题定义}{2}{section.1.3}
+\contentsline {section}{\numberline {1.4}动机}{2}{section.1.4}
+\contentsline {chapter}{\numberline {第二章\hspace {0.3em}}相关工作}{3}{chapter.2}
+\contentsline {chapter}{\numberline {第三章\hspace {0.3em}}问题描述}{5}{chapter.3}
+\contentsline {section}{\numberline {3.1}假设}{5}{section.3.1}
+\contentsline {subsection}{\numberline {3.1.1}CPU资源的特点}{5}{subsection.3.1.1}
+\contentsline {subsection}{\numberline {3.1.2}RAM资源的特点}{5}{subsection.3.1.2}
+\contentsline {subsection}{\numberline {3.1.3}评价函数}{6}{subsection.3.1.3}
+\contentsline {section}{\numberline {3.2}虚拟机部署问题}{7}{section.3.2}
+\contentsline {chapter}{\numberline {第四章\hspace {0.3em}}算法的设计与实现}{9}{chapter.4}
+\contentsline {section}{\numberline {4.1}设计}{9}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}初始化}{10}{subsection.4.1.1}
+\contentsline {subsection}{\numberline {4.1.2}找寻邻解}{11}{subsection.4.1.2}
+\contentsline {subsection}{\numberline {4.1.3}接受条件}{11}{subsection.4.1.3}
+\contentsline {section}{\numberline {4.2}实现}{12}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}参数的设置}{12}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}评价函数}{13}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.3}测试数据的选取}{13}{subsection.4.2.3}
+\contentsline {chapter}{\numberline {第五章\hspace {0.3em}}实验结果与结论}{15}{chapter.5}
+\contentsline {section}{\numberline {5.1}有效性}{15}{section.5.1}
+\contentsline {section}{\numberline {5.2}稳定性}{15}{section.5.2}
+\contentsline {section}{\numberline {5.3}结果}{16}{section.5.3}
+\contentsline {section}{\numberline {5.4}结论}{16}{section.5.4}
+\contentsline {section}{\numberline {5.5}结语}{18}{section.5.5}
+\contentsline {chapter}{致谢}{I}{chapter*.21}
+\contentsline {chapter}{参考文献}{III}{chapter*.22}

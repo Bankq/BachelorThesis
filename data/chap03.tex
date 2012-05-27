@@ -1,0 +1,127 @@
+
+\chapter{问题描述}
+\label{chap:3}
+
+\section{假设}
+\label{sec:scenario}
+
+在本文所关注的情境中，如上文\eqref{sec:concern}所说处理器资源(CPU，下同)和内存资源(RAM,下同)是我们考量的两个约束条件。
+
+CPU资源和RAM资源在实际需求中具有不同的特点。
+
+\subsection{CPU资源的特点}
+\label{sec:cpu-character}
+
+CPU资源具有原子性，即可以被分配的CPU资源一般是以计算核心(core)为单位的，而并非连续分配的。因此我们可以认为一台具有$N_{core}$个核心实体机的计算资源
+\begin{equation}
+  \label{eq:1}
+C^{PM}=\{\ C^{PM}_1,C^{PM}_2,\cdots,C^{PM}_{N_{core}}\ \}  
+\end{equation}
+
+在通常情况下，集群中节点的每个计算核心的计算能力都是相同的，因此我们假设
+\begin{equation}
+  \label{eq:2}
+C^{PM}=\{\ N_{core}\times C^{PM}_{core} \}  
+\end{equation}
+
+取$C^{PM}_{core} = 1$，则可以将一台实体机的计算资源$C^{PM}$由一个非负整数$N_{core}$来表示。同样，每个对计算资源的请求可以用一个非负实数$c_{req}$来表示。而由于CPU资源的原子性，每个CPU请求$c_{req}$应该分配$\lceil c_{req} \rceil $个核心。
+
+\subsection{RAM资源的特点}
+\label{sec:ram-character}
+
+RAM资源具有可共享的特点，即多个虚拟机可以共享一段内存(严格的说，应当是分时的使用这一段内存，即在每一时刻如果某一段内存被一VM占用，则其他VM则不能访问这段内存)。在虚拟机资源的经典情境中，当一个PM尚未分配的RAM资源小于某一个VM的RAM请求时，该VM就不能被部署在这个PM上。而如果我考虑RAM资源可以被动态分配的特点，则可以满足PM上所有VM对RAM资源的请求总和大于该PM所拥有的RAM资源，即
+\begin{equation}
+\sum_{i}r^{req}_i \geq R^{PM}
+\end{equation}
+我们相信，这样的模型假设虽然简单，但是是合理的。比如在现代计算机系统中存在的虚拟内存就是内存可动态分配的一种体现。我们作出这样假设的前提是VM并不总是在使用它所请求的\textbf{所有}资源。所以，不可避免的，会出现一台PM上所有VM\textbf{实际使用的}RAM总和大于其所拥有的RAM总和,即$\sum_{i}r^{util}_i \geq R^{PM}$,我们称这样的情况为``冲突''。当冲突发生时，由于需要进行换页等操作来满足用户的需求，相当于牺牲了服务质量，可以认为付出了一定的代价。所有我们希望算法能够将此代价控制在一个阈值内。
+
+所以，问题的输入为一个由资源请求组成的集合$V$，其每个元素由三个值组成$v_i = <c_i,r_i,\mu_i>$,分别表示对CPU资源和RAM资源的请求以及RAM资源的平均利用率。另有一个由PM资源组成的集合$P$,其每个元素为一个值对$p_j = <C,R>$，分别表示所拥有的CPU资源和RAM资源，且$C$,$R$均为常数；问题的输出是$V$上的一个划分，并且每一个划分都满足一定的条件。
+
+\subsection{评价函数}
+\label{sec:value-function}
+
+在使用启发式算法求解问题时，需要对解空间内的每个解进行评价(Value)，并根据评价来确定解的优劣。在经典的装箱问题中，求解的目标是尽可能的减少使用实体机的数量，因此计算一个解中使用PM的数量(即产生划分的个数)可以作为评价函数。
+
+经典的装箱问题中，希望尽可能减少``箱子''数量的原因是为了降低成本。但是我们注意到，减少使用的PM数量所减少的成本通常是能源成本。而一个计算集群的成本还与服务质量有关，比如通信的质量，故障率等因素。在本文所描述的情境中，我们希望能同时关注成本与性能的问题。
+
+我们定义了以下三方面的问题:
+
+\begin{itemize}
+\item \textbf{降低成本}。与经典的装箱问题相同，我们希望部署的结果在保证质量的前提下能尽可能的降低成本，即减少PM的使用。一台PM产生的成本，取决于是否有虚拟机被部署于其上，而可以认为与其上的负载没有关系(即一旦启动则认为成本一定)，所以我们仍旧采用计算PM的数量来作为衡量解优劣的指标。
+\item \textbf{负载均衡}。对于需要相互通信的计算集群(比如Hadoop集群),如果单个节点上的负载过高,则有可能会成为整个系统的性能瓶颈。我们希望部属的结果能尽可能的保证每个节点上的负载相对均衡。
+\item \textbf{减少冲突}。由于我们采用了可以共享内存的模型，所以会出现一台PM上部署的VM的RAM请求之和大于PM自身拥有的RAM总和，因此有一定概率出现``冲突''的情况。我们希望部属的结果能尽可能的保证整个系统的冲突概率尽可能的减少。
+\end{itemize}
+
+由于这三方面的问题都和具体的应用情境相关，因为我们无法给出之间的具体权重。我们将会单独对三方面问题进行讨论，然后再对综合情况的结果加以探讨，以期给出一个相对开放的结论。
+
+\section{虚拟机部署问题}
+\label{sec:formulation}
+
+下面对虚拟机部署问题基于上述假设描述的情境进行形式化。
+
+\subsection*{变量表}
+\label{sec:notation-table}
+
+\begin{table}[htbp]
+
+  \centering
+  \begin{threeparttable}
+    \caption{\label{tab:notation}变量表}
+    \begin{tabular}{cl}
+      \toprule
+        变量名  &  说~明  \\
+      \midrule
+        $x_{ij}$    &  $VM_i$是否装入$PM_j$    \\
+        $N_v$      &  虚拟机的数量    \\
+        $N_p$      &  实体机的数量    \\
+        $VM_i$     &  虚拟机请求$i$  \\
+        $PM_j$     &  实体机$j$     \\
+        $C^{req}_i$  &  $VM_i$的CPU请求 \\
+        $R^{req}_i$  & $VM_i$的RAM请求 \\
+        $ER_i$  & $VM_i$的RAM平均使用率 \\
+        $C^{used}_j$  & $PM_j$已被分配的CPU \\
+        $R^{used}_j$  & $PM_j$已被分配的RAM \\
+        $C^T$       & $PM_j$所拥有的CPU \\
+        $R^T$       & $PM_j$所拥有的RAM \\
+      \bottomrule
+    \end{tabular}
+    \tiny
+    \begin{tablenotes}
+    \item [*] $x_{ij}$为一位二进制变量
+    \item [**]$N_p$理想情况下应为无穷大
+    \end{tablenotes}
+
+  \end{threeparttable}
+\end{table}
+
+\subsection*{约束条件}
+\label{sec:constraints}
+上述变量\eqref{tab:notation}应当满足如下的约束条件:
+
+\begin{eqnarray}
+  \label{eq:constraints}
+  N_v &\leq& N_p \label{eq:con:1}\\
+  x_{ij} &=& \{\ 1,0\ \} \label{eq:con:2}\\
+  \sum_j x_{ij} &=& 1 \label{eq:con:3} \\
+  \sum_i C^{req}_i x_{ij} &\leq& C^T , \forall j \label{eq:con:4}\\
+  \sum_i R^{req}_i\ ER_i\  x_{ij} &\leq& R^T , \forall j \label{eq:con:5}
+\end{eqnarray}
+
+这些约束条件的涵义如下:
+
+\begin{itemize}
+\item 公式~\eqref{eq:con:1}说明系统可以提供的PM的数量总多于VM的请求数\footnote{在实际情境中，虚拟机数量一般大于最终使用的实体机数量。实际上，我们应当定义实体机数量趋近无穷($0 \leq N_p \rightarrow +\infty$)，即不对实体机数量作约束。而在算法实现中，我们需要保证算法能够产生至少一个有效解，因此约定$N_v \leq N_p$,并且在后文的实现中取不同的数据规模进行分析。}  
+\item 公式~\eqref{eq:con:2}表示一个VM请求的两种状态:1表示被部署在$PM_j$中，0表示没有被部署在$PM_j$中
+
+\item 公式~\eqref{eq:con:3}说明一个VM能且只能被部署在一个PM上。
+
+\item 公式~\eqref{eq:con:4}和公式~\eqref{eq:con:5}说明每一个PM上所有VM的资源请求不能超过自身所拥有资源\footnote{注意到公式~\eqref{eq:con:5}限制每个PM上的所有VM的\textbf{平均}RAM资源请求，是因为RAM的可以共享性质。所以实际解中是会出现$\sum_i R^{req}_i x_{ij} \geq R^T$的情况的。}
+\end{itemize}
+
+
+\subsection*{目标}
+\label{sec:objective}
+算法的目标是找到这样的一个解:在满足上述约束条件的限制下，评价尽可能``低''\footnote{这里使用``低''是指采用的评价函数的值尽可能的小。由于本文采用的是模拟退火算法求解，评价函数的值越低表明系统的能量越小，即更靠近最优解。}。由于我们将会讨论多个评价函数下算法的表现，因此用$value(s)$表示对解$s$的评价。
+
+
+

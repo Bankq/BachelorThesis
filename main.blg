@@ -1,0 +1,62 @@
+This is BibTeX, Version 0.99d (TeX Live 2011)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: main.aux
+A level-1 auxiliary file: data/chap01.aux
+A level-1 auxiliary file: data/chap02.aux
+A level-1 auxiliary file: data/chap03.aux
+A level-1 auxiliary file: data/chap04.aux
+A level-1 auxiliary file: data/chap05.aux
+A level-1 auxiliary file: data/ack.aux
+The style file: plain.bst
+Database file #1: ref/reference.bib
+Warning--I'm ignoring Shah01's extra "title" field
+--line 143 of file ref/reference.bib
+Warning--empty booktitle in Verm08
+Warning--empty booktitle in Chan99
+Warning--empty booktitle in Karg07
+Warning--empty booktitle in Shah01
+Warning--empty booktitle in Grit06
+Warning--empty booktitle in Bobr07
+Warning--empty booktitle in Bans07
+You've used 13 entries,
+            2118 wiz_defined-function locations,
+            599 strings with 6805 characters,
+and the built_in function-call counts, 4366 in all, are:
+= -- 449
+> -- 142
+< -- 5
++ -- 58
+- -- 44
+* -- 247
+:= -- 694
+add.period$ -- 44
+call.type$ -- 13
+change.case$ -- 61
+chr.to.int$ -- 0
+cite$ -- 20
+duplicate$ -- 202
+empty$ -- 373
+format.name$ -- 44
+if$ -- 977
+int.to.chr$ -- 0
+int.to.str$ -- 13
+missing$ -- 13
+newline$ -- 68
+num.names$ -- 26
+pop$ -- 77
+preamble$ -- 1
+purify$ -- 48
+quote$ -- 0
+skip$ -- 152
+stack$ -- 0
+substring$ -- 277
+swap$ -- 54
+text.length$ -- 5
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 52
+warning$ -- 7
+while$ -- 39
+width$ -- 15
+write$ -- 146
+(There were 8 warnings)

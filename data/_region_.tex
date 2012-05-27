@@ -1,0 +1,119 @@
+\message{ !name(chap04.tex)}
+\message{ !name(chap04.tex) !offset(-2) }
+
+\chapter{算法的设计与实现}
+\label{chap:algo}
+
+\section{设计}
+\label{sec:design}
+模拟退火算法是一个可以被高度抽象的算法。它的设计并不受制于所需要求解的问题(但是参数的设置需要根据问题的性质来设定)。我们设计的算法主要框架如下:
+
+\begin{algorithm}[H]
+  \DontPrintSemicolon
+  \SetKwInOut{Input}{INPUT}
+  \SetKwInOut{Output}{OUTPUT}
+  \SetKwData{Temp}{temperature}
+  \SetKwData{CurS}{cur\_state}
+  \SetKwData{CurV}{cur\_value}
+  \SetKwData{Neigh}{neighbor}
+  \SetKwData{NewV}{new\_value}
+  \SetKwData{Term}{term}
+  \SetKwFunction{GetV}{value}
+  \SetKwFunction{GetNeigh}{get\_neighbor}
+  \SetKwFunction{Acc}{accept}
+  \SetKwFunction{Cool}{cooldown}
+  
+  \Input{List $si$ which is a permutation of ids of PMs}
+  \Output{List $so$ which is another permutation of ids of PMs}
+  \Begin{
+    \CurS$\leftarrow si$\;
+    \CurV$\leftarrow$ \GetV{$si$}\;
+    \Temp$\leftarrow$ $InitTemperature$\;
+    \Term$\leftarrow$ $0$\;
+    \While{$\Term < maxTerm \And \Temp > minTemperature $}
+    {
+      \Neigh $\leftarrow$ \GetNeigh{\CurS}\;
+      \NewV $\leftarrow$ \GetV{\Neigh}\;
+      \If{\Acc{\CurV,\NewV,\Temp}}
+      {
+        \CurS $\leftarrow$ \Neigh\;
+        \CurV $\leftarrow$ \NewV\;
+      }
+      $\Term \leftarrow \Term + 1$\;
+      \Temp $\leftarrow$ \Cool{\Temp,\Term}\;
+    }
+    \Return \CurS
+  }
+  \caption{Simulated Annealing\label{SA}}
+\end{algorithm}
+
+算法的输入是一个``状态''$S$，表示形式为一个列表，表中的元素$S_i$表示$VM_i$被部署到$PM_{S_i}$。一个状态即代表问题的一个解。
+
+算法的输出童谣是一个状态，这是经过模拟退火算法迭代过后的新状态，它收敛到一个局部最优解。
+
+\subsection{初始化}
+\label{sec:init}
+
+由于算法对初始状态并不敏感，因此我们采用了\texttt{random\_fit}的方法生成初始状态，其算法描述如下:
+
+\begin{algorithm}[H]
+  \DontPrintSemicolon
+  \SetKwInOut{Input}{INPUT}
+  \SetKwInOut{Output}{OUTPUT}
+  \SetKwData{St}{state}
+  \SetKwData{Pl}{plist}
+  \SetKwData{PIndex}{pi}
+  \SetKwData{PData}{p}
+  \SetKwFunction{Random}{randomInt}
+  \SetKwFunction{Avail}{available}
+  \SetKwFunction{Assign}{assign}
+  \SetKwFunction{Len}{length}
+  
+  \Input{List $V$ which is the VMs\' requests infomation}
+  \Output{List $s$ which is a state(solution)}
+  \Begin{
+    \St $\leftarrow$ [~]\;
+    \Pl $\leftarrow EmptyPmInfoList$ \;
+    \For{$every vm_i \in V$}
+    {
+      \PIndex $\leftarrow$ \Random{0,\Len{\Pl}}\;
+      \PData $\leftarrow$ \Pl[\PIndex]\;
+      \Repeat{$available(vm_i,\PData)$}{
+        \PIndex $\leftarrow$ \Random{0,\Len{\Pl}}\;
+        \PData $\leftarrow$ \Pl[\PIndex]\;
+      }
+      \Assign{$vm_i$,\PData}\;
+      \St[$i$] $\leftarrow$ \PIndex\;
+    }
+    \Return \St\;
+  }
+  \caption{Random Fit\label{rf}}
+\end{algorithm}
+
+算法\ref{rf}随机的在提供的PM序列里寻找可以(满足约束条件)部署的节点。直到所有VM均被成功部署后返回解状态。
+
+\section{实现}
+\label{sec:implementation}
+
+我们使用了Python编程语言对算法进行了实现。下面介绍一些值得注意的部分。
+
+\subsection{参数的设置}
+\label{sec:config}
+
+模拟退火算法对参数设置是非常敏感的，包括初始温度的设置，降温的速度，评价函数的设计都会对最后收敛的速度和结果有比较大的影响。经过反复试验，我们确定了以下的参数设置:
+
+\begin{itemize}
+\item \textbf{初始温度}。由于在判断是否接受时计算了$\Delta value/t$的值，因此我们希望能将温度和评价归一化。初始温度被设置为初始评价的$K$倍，$K = N_v N_p$。
+\item \textbf{降温速度}。降温速度太快会导致算法很快收敛，得不到比较理想的结果，而降温速度太慢则会导致收敛过程很长，并且在计算初期接受过于不理想的结果，影响效率。经过试验，使用了$t_{n+1} = 0.89t_n$这样的线形降温速度，收到了良好的效果。
+\item \textbf{评价函数}。在实现中采用了四种因素综合评价的方式。我们考虑了PM的数量，RAM的负载均衡，CPU的负载均和和平均冲突率，并以这四个值的乘积作为评价函数的返回值。\label{evalutation}
+\end{itemize}
+
+\subsection{评价函数}
+\label{sec:evaluation-function}
+
+在所有参数中，评价函数的确定是对算法影响最大的，因为它直接决定了算法的走向。比如我们选取使用PM的数量作为评价的标准，那么在迭代的过程中接受那些使用更少PM的解。如前文\ref{evaluation}所说，我们希望综合考虑更重因素，所以我们采用了如下的评价函数:
+
+\begin{itemize}
+\item 
+\end{itemize}
+\message{ !name(chap04.tex) !offset(-119) }

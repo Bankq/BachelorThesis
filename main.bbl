@@ -1,0 +1,78 @@
+\begin{thebibliography}{10}
+
+\bibitem{Verm08}
+P.~Ahuja A.Verma and A.~Neogi. pMapper.
+\newblock Power and migration cost aware application placement in virtualized
+  systems.
+\newblock 2008.
+
+\bibitem{Chan99}
+Sanjeev~Khanna Chandra~Chekuri.
+\newblock On multi-dimensional packing problems.
+\newblock pages 185--194, Baltimore, Maryland, USA, 1999. Society for
+  Industrial and Applied Mathematics,.
+
+\bibitem{Hyse07}
+Rob~Gardner Chris~Hyser, Bret~Mckee and Brian~J. Watson.
+\newblock Autonomic virtual machine placement in the data center.
+\newblock {\em HP Labs tech- nical report}, HPL-2007-189, 2007.
+
+\bibitem{Karg07}
+Krzysztof~Onak David~Karger.
+\newblock Polynomial approximation schemes for smoothed and random instances of
+  multidimensional packing prob- lems.
+\newblock pages 1207--1216, Philadelphia, PA, USA, 2007. Society for Industrial
+  and Applied Mathematics.
+
+\bibitem{Shah01}
+Abhay~Chrungoo Johara~Shahabuddin, Vishu Gupta, Sandeep Juneja, Sanjiv Kapoor,
+  and Arun Kumar.
+\newblock Stream-packing: Resource allocation in web server farms with a qos
+  guarantee.
+\newblock pages 182--191, Springer Berlin / Heidelberg, 2001.
+
+\bibitem{Grit06}
+A.Yumerefendi L.Grit, D.Irwin and J.Chase.
+\newblock Virtual machine hosting for networked clusters: Building the
+  foundations for autonomic orchestration.
+\newblock Washington, DC, USA, 2006. IEEE Computer Society.
+
+\bibitem{Garey76}
+R.L.~Graham M.R.~Garey and D.S. Johnson.
+\newblock Resource constrained scheduling as generalized bin packing.
+\newblock {\em J. Combinatorical Theory}, 21(3):257--298, 1976.
+
+\bibitem{Bobr07}
+A.~Kochut N.~Bobroff and K.~Beaty.
+\newblock Dynamic placement of virtual machines for managing sla violations.
+\newblock Washington, DC, USA, 2007. IEEE Computer Society.
+
+\bibitem{Karm82}
+Richard M.~Karp Narendra~Karmarkar.
+\newblock An efficient approxima- tion scheme for the one-dimensional
+  bin-packing problem.
+\newblock {\em SFCS ’82: Proceedings of the 23rd Annual Symposium on
+  Foundations of Com- puter Science}, pages 312--320, 1982.
+
+\bibitem{Bans07}
+Maxim~Sviridenko Nikhil~Bansal, Alberto~Caprara.
+\newblock Improved ap- proximation algorithms for multidimensional bin packing
+  problems.
+\newblock pages 697--708, WashingtonDC, USA, 2006. IEEE Computer Society.
+
+\bibitem{Bian04}
+R.Rajamony R.Bianchini.
+\newblock Power and energy management for server systems.
+\newblock {\em IEEE Computer}, 37, 2004.
+
+\bibitem{Vega81}
+George S.~Lueker Wenceslas Fernandez de~la Vega.
+\newblock Bin packing can be solved within 1+epsilon in linear time.
+\newblock {\em Combinatorica}, 1(4):349--355, 1981.
+
+\bibitem{Woeg97}
+Gerhard~J. Woeginger.
+\newblock There is no asymptotic ptas for two- dimensional vector packing.
+\newblock {\em Information Processing Letters}, 64(6):293--297, 1997.
+
+\end{thebibliography}
