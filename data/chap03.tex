@@ -1,13 +1,15 @@
 
-\chapter{基于内存共享的虚拟机部署技术}
+\chapter{问题描述}
 \label{chap:3}
 
-\section{资源特点分析}
+\section{假设}
+\label{sec:scenario}
 
-在本文所关注的情境中，如上文所说处理器资源(CPU)和内存资源是我们考量的两个约束条件。
-CPU资源和内存资源在实际需求中具有不同的特点。
+在本文所关注的情境中，如上文\eqref{sec:concern}所说处理器资源(CPU，下同)和内存资源(RAM,下同)是我们考量的两个约束条件。
 
-\subsection*{CPU资源的特点}
+CPU资源和RAM资源在实际需求中具有不同的特点。
+
+\subsection{CPU资源的特点}
 \label{sec:cpu-character}
 
 CPU资源具有原子性，即可以被分配的CPU资源一般是以计算核心(core)为单位的，而并非连续分配的。因此我们可以认为一台具有$N_{core}$个核心实体机的计算资源
@@ -24,41 +26,41 @@ C^{PM}=\{\ N_{core}\times C^{PM}_{core} \}
 
 取$C^{PM}_{core} = 1$，则可以将一台实体机的计算资源$C^{PM}$由一个非负整数$N_{core}$来表示。同样，每个对计算资源的请求可以用一个非负实数$c_{req}$来表示。而由于CPU资源的原子性，每个CPU请求$c_{req}$应该分配$\lceil c_{req} \rceil $个核心。
 
-\subsection*{内存资源的特点}
+\subsection{RAM资源的特点}
 \label{sec:ram-character}
 
-内存资源具有可共享的特点，即多个虚拟机可以共享一段内存(严格的说，应当是分时的使用这一段内存，即在每一时刻如果某一段内存被一VM占用，则其他VM则不能访问这段内存)。在虚拟机资源的经典情境中，当一个PM尚未分配的内存资源小于某一个VM的内存请求时，该VM就不能被部署在这个PM上。而如果我考虑内存资源可以被动态分配的特点，则可以满足PM上所有VM对内存资源的请求总和大于该PM所拥有的内存资源，即
+RAM资源具有可共享的特点，即多个虚拟机可以共享一段内存(严格的说，应当是分时的使用这一段内存，即在每一时刻如果某一段内存被一VM占用，则其他VM则不能访问这段内存)。在虚拟机资源的经典情境中，当一个PM尚未分配的RAM资源小于某一个VM的RAM请求时，该VM就不能被部署在这个PM上。而如果我考虑RAM资源可以被动态分配的特点，则可以满足PM上所有VM对RAM资源的请求总和大于该PM所拥有的RAM资源，即
 \begin{equation}
-\sum_{i}R^{req}_ix_{ij} \geq R^T ,\forall j 
+\sum_{i}r^{req}_i \geq R^{PM}
 \end{equation}
-其中$R^{req}_i$是某个虚拟机的内存请求，$x_{ij}$表示虚拟机$VM_i$是否被部署在实体机$PM_j$上，$R^T$是一台PM所拥有的内存。
+我们相信，这样的模型假设虽然简单，但是是合理的。比如在现代计算机系统中存在的虚拟内存就是内存可动态分配的一种体现。我们作出这样假设的前提是VM并不总是在使用它所请求的\textbf{所有}资源。所以，不可避免的，会出现一台PM上所有VM\textbf{实际使用的}RAM总和大于其所拥有的RAM总和,即$\sum_{i}r^{util}_i \geq R^{PM}$,我们称这样的情况为``冲突''。当冲突发生时，由于需要进行换页等操作来满足用户的需求，相当于牺牲了服务质量，可以认为付出了一定的代价。所有我们希望算法能够将此代价控制在一个阈值内。
 
-我们相信，这样的模型假设虽然简单，但是是合理的。比如在现代计算机系统中存在的虚拟内存就是内存可动态分配的一种体现。我们作出这样假设的前提是VM并不总是在使用它所请求的\textbf{所有}资源。所以，不可避免的，会出现一台PM上所有VM\textbf{实际需要使用的}内存总和大于其所拥有的内存总和,即,我们称这样的情况为``冲突''。当冲突发生时，由于需要进行换页等操作来满足用户的需求，相当于牺牲了服务质量，可以认为付出了一定的代价。所有我们希望算法能够将此代价控制在一个阈值内。
+所以，问题的输入为一个由资源请求组成的集合$V$，其每个元素由三个值组成$v_i = <c_i,r_i,\mu_i>$,分别表示对CPU资源和RAM资源的请求以及RAM资源的平均利用率。另有一个由PM资源组成的集合$P$,其每个元素为一个值对$p_j = <C,R>$，分别表示所拥有的CPU资源和RAM资源，且$C$,$R$均为常数；问题的输出是$V$上的一个划分，并且每一个划分都满足一定的条件。
 
-
-
-\subsection*{评价函数}
+\subsection{评价函数}
 \label{sec:value-function}
 
-在使用启发式算法求解问题时，需要对解空间内的每个解进行评价，并根据评价来确定解的优劣。在经典的装箱问题中，求解的目标是尽可能的减少使用实体机的数量，因此计算一个解中使用PM的数量(即产生划分的个数)可以作为评价函数。
+在使用启发式算法求解问题时，需要对解空间内的每个解进行评价(Value)，并根据评价来确定解的优劣。在经典的装箱问题中，求解的目标是尽可能的减少使用实体机的数量，因此计算一个解中使用PM的数量(即产生划分的个数)可以作为评价函数。
 
 经典的装箱问题中，希望尽可能减少``箱子''数量的原因是为了降低成本。但是我们注意到，减少使用的PM数量所减少的成本通常是能源成本。而一个计算集群的成本还与服务质量有关，比如通信的质量，故障率等因素。在本文所描述的情境中，我们希望能同时关注成本与性能的问题。
 
-我们定义了以下三方面的指标:
+我们定义了以下三方面的问题:
 
 \begin{itemize}
-\item \textbf{减少PM的使用}。与经典的装箱问题相同，我们希望部署的结果在保证质量的前提下能尽可能的降低成本，即减少PM的使用。一台PM产生的成本，取决于是否有虚拟机被部署于其上，而可以认为与其上的负载没有关系(即一旦启动则认为成本一定)，所以我们仍旧采用计算PM的数量来作为衡量解优劣的指标。
+\item \textbf{降低成本}。与经典的装箱问题相同，我们希望部署的结果在保证质量的前提下能尽可能的降低成本，即减少PM的使用。一台PM产生的成本，取决于是否有虚拟机被部署于其上，而可以认为与其上的负载没有关系(即一旦启动则认为成本一定)，所以我们仍旧采用计算PM的数量来作为衡量解优劣的指标。
 \item \textbf{负载均衡}。对于需要相互通信的计算集群(比如Hadoop集群),如果单个节点上的负载过高,则有可能会成为整个系统的性能瓶颈。我们希望部属的结果能尽可能的保证每个节点上的负载相对均衡。
-\item \textbf{减少冲突}。由于我们采用了可以共享内存的模型，所以会出现一台PM上部署的VM的内存请求之和大于PM自身拥有的内存总和，因此有一定概率出现``冲突''的情况。我们希望部属的结果能尽可能的保证整个系统的冲突概率尽可能的减少。
+\item \textbf{减少冲突}。由于我们采用了可以共享内存的模型，所以会出现一台PM上部署的VM的RAM请求之和大于PM自身拥有的RAM总和，因此有一定概率出现``冲突''的情况。我们希望部属的结果能尽可能的保证整个系统的冲突概率尽可能的减少。
 \end{itemize}
 
 由于这三方面的问题都和具体的应用情境相关，因为我们无法给出之间的具体权重。我们将会单独对三方面问题进行讨论，然后再对综合情况的结果加以探讨，以期给出一个相对开放的结论。
 
-\section{问题描述}
+\section{虚拟机部署问题}
 \label{sec:formulation}
 
-下面对虚拟机部署问题基于上述假设描述的情境进行形式化。表\ref{tab:notation}给出了问题描述中所使用到的变量。
+下面对虚拟机部署问题基于上述假设描述的情境进行形式化。
 
+\subsection*{变量表}
+\label{sec:notation-table}
 
 \begin{table}[htbp]
 
@@ -70,17 +72,17 @@ C^{PM}=\{\ N_{core}\times C^{PM}_{core} \}
         变量名  &  说~明  \\
       \midrule
         $x_{ij}$    &  $VM_i$是否装入$PM_j$    \\
-        $N_v$      &  VM的数量    \\
-        $N_p$      &  PM的数量    \\
-        $VM_i$     &  VM请求$i$  \\
-        $PM_j$     &  PM资源$j$     \\
+        $N_v$      &  虚拟机的数量    \\
+        $N_p$      &  实体机的数量    \\
+        $VM_i$     &  虚拟机请求$i$  \\
+        $PM_j$     &  实体机$j$     \\
         $C^{req}_i$  &  $VM_i$的CPU请求 \\
-        $R^{req}_i$  & $VM_i$的内存请求 \\
-        $\gamma_i$  & $VM_i$的内存平均使用率 \\
+        $R^{req}_i$  & $VM_i$的RAM请求 \\
+        $ER_i$  & $VM_i$的RAM平均使用率 \\
         $C^{used}_j$  & $PM_j$已被分配的CPU \\
-        $R^{used}_j$  & $PM_j$已被分配的内存 \\
+        $R^{used}_j$  & $PM_j$已被分配的RAM \\
         $C^T$       & $PM_j$所拥有的CPU \\
-        $R^T$       & $PM_j$所拥有的内存 \\
+        $R^T$       & $PM_j$所拥有的RAM \\
       \bottomrule
     \end{tabular}
     \tiny
@@ -92,8 +94,6 @@ C^{PM}=\{\ N_{core}\times C^{PM}_{core} \}
   \end{threeparttable}
 \end{table}
 
-
-
 \subsection*{约束条件}
 \label{sec:constraints}
 上述变量\eqref{tab:notation}应当满足如下的约束条件:
@@ -103,200 +103,25 @@ C^{PM}=\{\ N_{core}\times C^{PM}_{core} \}
   N_v &\leq& N_p \label{eq:con:1}\\
   x_{ij} &=& \{\ 1,0\ \} \label{eq:con:2}\\
   \sum_j x_{ij} &=& 1 \label{eq:con:3} \\
-  \sum_i C^{req}_i \cdot x_{ij} &\leq& C^T , \forall j \label{eq:con:4}\\
-  \sum_i R^{req}_i\ \cdot \gamma_i\ \cdot  x_{ij} &\leq& R^T , \forall j \label{eq:con:5}
+  \sum_i C^{req}_i x_{ij} &\leq& C^T , \forall j \label{eq:con:4}\\
+  \sum_i R^{req}_i\ ER_i\  x_{ij} &\leq& R^T , \forall j \label{eq:con:5}
 \end{eqnarray}
 
 这些约束条件的涵义如下:
 
 \begin{itemize}
-\item 公式~\eqref{eq:con:1}说明系统可以提供的PM的数量总多于VM的请求数,在实际情境中，虚拟机数量一般大于最终使用的实体机数量。实际上，我们应当定义实体机数量趋近无穷($0 \leq N_p \rightarrow +\infty$)，即不对实体机数量作约束。而在算法实现中，我们需要保证算法能够产生至少一个有效解，因此约定$N_v \leq N_p$,并且在后文的实现中取不同的数据规模进行分析。
+\item 公式~\eqref{eq:con:1}说明系统可以提供的PM的数量总多于VM的请求数\footnote{在实际情境中，虚拟机数量一般大于最终使用的实体机数量。实际上，我们应当定义实体机数量趋近无穷($0 \leq N_p \rightarrow +\infty$)，即不对实体机数量作约束。而在算法实现中，我们需要保证算法能够产生至少一个有效解，因此约定$N_v \leq N_p$,并且在后文的实现中取不同的数据规模进行分析。}  
 \item 公式~\eqref{eq:con:2}表示一个VM请求的两种状态:1表示被部署在$PM_j$中，0表示没有被部署在$PM_j$中
 
 \item 公式~\eqref{eq:con:3}说明一个VM能且只能被部署在一个PM上。
 
-\item 公式~\eqref{eq:con:4}和公式~\eqref{eq:con:5}说明每一个PM上所有VM的资源请求不能超过自身所拥有资源。注意到公式~\eqref{eq:con:5}限制每个PM上的所有VM的\textbf{平均}内存资源请求，是因为内存的可以共享的性质。所以实际解中是会出现$\sum_i R^{req}_i x_{ij} \geq R^T$的情况的。
+\item 公式~\eqref{eq:con:4}和公式~\eqref{eq:con:5}说明每一个PM上所有VM的资源请求不能超过自身所拥有资源\footnote{注意到公式~\eqref{eq:con:5}限制每个PM上的所有VM的\textbf{平均}RAM资源请求，是因为RAM的可以共享性质。所以实际解中是会出现$\sum_i R^{req}_i x_{ij} \geq R^T$的情况的。}
 \end{itemize}
 
-\subsection*{问题描述}
-\label{problem-description}
-问题的输入是$N_v$个VM请求组成的集合$V$，其中每个请求$VM_i$拥有三个参数$C^{req}_i$,'$R^{req}_i$和$\gamma_i$；问题的输出是找到满足约束条件\eqref{eq:constraints}的$V$上的一个划分。我们把一个合法的划分成为问题的一个解(solution,简称s)。算法的目标是找到一个评价尽可能``低''。这里使用``低''是指采用的评价函数的值尽可能的小。由于本文采用的是模拟退火算法求解，评价函数的值越低表明系统的能量越小，即更靠近最优解。的解。由于我们将会讨论多个评价函数下算法的表现，因此用$value(s)$表示对解$s$的评价。
+
+\subsection*{目标}
+\label{sec:objective}
+算法的目标是找到这样的一个解:在满足上述约束条件的限制下，评价尽可能``低''\footnote{这里使用``低''是指采用的评价函数的值尽可能的小。由于本文采用的是模拟退火算法求解，评价函数的值越低表明系统的能量越小，即更靠近最优解。}。由于我们将会讨论多个评价函数下算法的表现，因此用$value(s)$表示对解$s$的评价。
 
 
 
-\section{算法设计}
-\label{sec:design}
-模拟退火算法被证明是解决组合优化问题的一个高效算法。在本文描述的问题中，算法每次迭代后的结果可以被认为是VM状态的组合，而算法的目标是将这个组合进行优化。
-我们设计的算法主要框架如下:
-
-\begin{algorithm}[H]
-  \DontPrintSemicolon
-  \SetKwInOut{Input}{INPUT}
-  \SetKwInOut{Output}{OUTPUT}
-  \SetKwData{Temp}{temperature}
-  \SetKwData{CurS}{cur\_state}
-  \SetKwData{CurV}{cur\_value}
-  \SetKwData{Neigh}{neighbor}
-  \SetKwData{NewV}{new\_value}
-  \SetKwData{Term}{term}
-  \SetKwFunction{GetV}{value}
-  \SetKwFunction{GetNeigh}{get\_neighbor}
-  \SetKwFunction{Acc}{accept}
-  \SetKwFunction{Cool}{cooldown}
-  
-  \Input{List $si$ which is a permutation of ids of PMs}
-  \Output{List $so$ which is another permutation of ids of PMs}
-  \Begin{
-    \CurS$\leftarrow si$\;
-    \CurV$\leftarrow$ \GetV{$si$}\;
-    \Temp$\leftarrow$ $InitTemperature$\;
-    \Term$\leftarrow$ $0$\;
-    \While{$\Term < maxTerm \And \Temp > minTemperature $}
-    {
-      \Neigh $\leftarrow$ \GetNeigh{\CurS}\;
-      \NewV $\leftarrow$ \GetV{\Neigh}\;
-      \If{\Acc{\CurV,\NewV,\Temp}}
-      {
-        \CurS $\leftarrow$ \Neigh\;
-        \CurV $\leftarrow$ \NewV\;
-      }
-      $\Term \leftarrow \Term + 1$\;
-      \Temp $\leftarrow$ \Cool{\Temp,\Term}\;
-    }
-    \Return \CurS
-  }
-  \caption{Simulated Annealing\label{algo:SA}}
-\end{algorithm}
-
-算法的输入是一个``状态''$S$，表示形式为一个列表，表中的元素$S_i$表示$VM_i$被部署到$PM_{S_i}$。一个状态即代表问题的一个解。算法的输出同样是一个状态，这是经过模拟退火算法迭代过后的新状态，它收敛到一个局部最优解。
-
-算法是一个迭代过程，迭代终止的条件是达到最大迭代次数，或系统温度低于最低温度。每次迭代过程都根据当前解生成一个邻居解，并根据二者的能量差和当前温度以一定概率接受这个解。算法启动时，由于不存在``当前''状态，我们需要一个初始化的过程来生成一个初始解。
-
-\subsection*{初始化}
-\label{sec:init}
-
-由于算法对初始状态并不敏感，因此我们采用了\texttt{random\_fit}的随机方法生成初始状态，其算法描述如下:
-
-\begin{algorithm}[H]
-  \DontPrintSemicolon
-  \SetKwInOut{Input}{INPUT}
-  \SetKwInOut{Output}{OUTPUT}
-  \SetKwData{St}{state}
-  \SetKwData{Pl}{plist}
-  \SetKwData{PIndex}{pi}
-  \SetKwData{PData}{p}
-  \SetKwData{Vmi}{vm\_i}
-  \SetKwFunction{Random}{randomInt}
-  \SetKwFunction{Avail}{available}
-  \SetKwFunction{Assign}{assign}
-  \SetKwFunction{Len}{length}
-  
-  \Input{List $V$ which is the VMs\' requests infomation}
-  \Output{List $s$ which is a state(solution)}
-  \Begin{
-    \St $\leftarrow$ [~]\;
-    \Pl $\leftarrow EmptyPmInfoList$ \;
-    \For{every $vm_i \in V$}
-    {
-      \PIndex $\leftarrow$ \Random{0,\Len{\Pl}}\;
-      \PData $\leftarrow$ \Pl[\PIndex]\;
-      \Repeat{\Avail{\Vmi,\PData}}{
-        \PIndex $\leftarrow$ \Random{0,\Len{\Pl}}\;
-        \PData $\leftarrow$ \Pl[\PIndex]\;
-      }
-      \Assign{$vm_i$,\PData}\;
-      \St[$i$] $\leftarrow$ \PIndex\;
-    }
-    \Return \St\;
-  }
-  \caption{Random Fit\label{algo:rf}}
-\end{algorithm}
-
-算法\ref{algo:rf}试探性的随机尝试部署某个虚拟机，一旦成功(满足约束条件)便将部署信息写入状态序列，直到所有请求都被成功部署。在算法的迭代过程中，我们需要找寻当前解的相邻解。相邻解的选取应当是随机的，这样算法才能在迭代初期给跳出局部最优解。同时相邻解应当和当前解相隔不远，因为一旦相邻解和当前解距离过大，则丧失了当前解带来的好处，最后很难收敛道较好的解。
-
-\subsection*{找寻邻解}
-\label{sec:neighbor-algo}
-算法\ref{algo:SA}中使用的\texttt{get\_neighbor(state)}过程用来从当前状态生成一个相邻的状态，找寻邻解的算法描述如下:
-
-\begin{algorithm}[H]
-  \DontPrintSemicolon
-  \SetKwInOut{Input}{INPUT}
-  \SetKwInOut{Output}{OUTPUT}
-  \SetKwData{St}{state}
-  \SetKwData{NewSt}{neighbor}
-  \SetKwData{Src}{src}
-  \SetKwData{Des}{des}
-  \SetKwData{Pl}{plist}
-  \SetKwData{PIndex}{pi}
-  \SetKwData{PData}{p}
-  \SetKwData{VData}{v}
-  \SetKwData{Max}{max}
-  \SetKwFunction{Random}{randomInt}
-  \SetKwFunction{Avail}{available}
-  \SetKwFunction{Assign}{assign}
-  \SetKwFunction{Len}{length}
-  
-  \Input{Current state $s$}
-  \Output{Neighbor state $neighbor$}
-  \Begin{
-    \NewSt $\leftarrow$ \St\;
-    \For{$0$ \KwTo \Max }
-    {
-      \Src $\leftarrow$ \Random{0,$N_v$} \;
-      \Des $\leftarrow$ \Random{0,$N_p$} \;
-      \VData $\leftarrow VM_{\Src}$\;
-      \PData $\leftarrow PM_{\Des}$\;
-      \Repeat{\Avail{\VData,\PData}}
-      {
-        \Des $\leftarrow$ \Random{0,$N_p$} \;
-        \PData $\leftarrow PM_{\Des}$\;
-      }
-      \NewSt[~\Src] $\leftarrow$ \Des\;
-    }
-    \Return \NewSt\;
-  }
-  \caption{Get Neighbor\label{algo:neighbor}}
-\end{algorithm}
-
-在算法\ref{algo:neighbor}中，我们对当前状态中的$max$个值进行了重新随机部署，$max$的取值决定了生成的邻解和当前解的距离。在模拟退火算法中，我们希望邻解有较高的随机性但是与当前解的距离不能太远，因此在实现中通常选$\frac{1}{10}$比例的值。
-
-在找寻邻解\ref{algo:neighbor}和初始化\ref{algo:rf}的过程中，我们都用到了函数\texttt{available(v,p)}。这个函数的作用是判断将VM请求\texttt{v}部署在PM资源\texttt{p}上是否满足约束条件\ref{eq:con:4}和约束条件\ref{eq:con:5}。
-
-\subsection*{引入约束条件的必要性}
-对于经典的模拟退火算法来说，根据评价函数的不同，算法有可能停止在解空间内的任意一点，并不需要对解本身做约束。然而在本文描述的情境中，我们关注的是多方面的因素，因此有可能出现一些算法认为很好，但实际上不合理的解的情况。针对这个问题，一个方法是修改评价函数的模型，引入更复杂、分情况的讨论；另一种方法对多个因素中的某些因素进行阈值的设定，达到缩小解空间(剪枝)的效果。所以引入约束条件后，相当于在较小的解空间进行启发式搜索的，有利于提高算法的效率。
-
-\subsection*{接受条件}
-\label{sec:accept}
-算法\ref{algo:SA}中使用的\texttt{accept(cur,new,t)}用来判断是否接受当前邻点。根据Metropolis准则，金属粒子在温度T时趋于平衡的概率为$e^{-\frac{\Delta E}{KT}}$,其中K是Boltzmann常数。本文所使用的策略即来自这一准则，算法的描述如下:
-\begin{algorithm}[H]
-  \DontPrintSemicolon
-  \SetKwInOut{Input}{INPUT}
-  \SetKwInOut{Output}{OUTPUT}
-  \SetKwData{CV}{cur}
-  \SetKwData{NV}{new}
-  \SetKwData{Del}{delta}
-  \SetKwData{Tem}{t}
-  \SetKwData{True}{true}
-  \SetKwData{False}{false}
-  \SetKwFunction{Random}{random}
-  
-  \Input{Current value \CV, neighbor value \NV, current temperature \Tem }
-  \Output{Boolean value indicates accept neighbor or not}
-  \Begin{
-    \Del $\leftarrow \NV - \CV$\;
-    \If{$\Del < 0$}{
-      \Return \True\;
-    }
-    \Else
-    {
-      \If{$e^{-\frac{\Del}{t}} > \Random{0,1}$}
-      {
-        \Return \True\;
-      }
-    }
-    \Return \False
-  }
-  \caption{Accept\label{algo:accept}}
-\end{algorithm}
-
-在上述算法\ref{algo:accept}中，\texttt{random(a,b)}函数随机返回一$a$到$b$之间的实数。从中我们可以看到，算法进行的初期，\texttt{t}相对较大，则$e^{-\frac{\Delta E}{KT}}$趋近于1，这时算法会接受一些比较差的相邻解；随着算法的进行，\texttt{t}逐渐冷却，$e^{-\frac{\Delta E}{KT}}$趋近于0，这时算法慢慢接受比当前解更差的相邻解。所以，算法的迭代过程是一个对相邻解逐渐挑剔的过程，当接受概率等于0时，算法退化成一般的``爬山法''，只接受随机产生的比自己更好的解了。

@@ -1,22 +1,11 @@
 \begin{abstract}
-近年来，学术界和工业界对云计算给予了特别重要的关注。作为一种新型计算模式，云计算提供了一种更高效的资源利用方式。云计算的成熟及使用很大程度上得益于虚拟化技术的成熟和使用，服务器虚拟化技术将物理服务器（实体机，physical machine, PM）分割为若干逻辑独立的虚拟机（virtual machine, VM），以VM为单位进行资源的分配和使用，大大提高了资源利用效率。由于虚拟化技术的引入，虚拟机部署问题成为一个需要首先解决的基本问题，即如何选择PM来进行虚拟化并创建VM来满足用户的资源需求。
-
-虚拟机部署策略的优劣直接关系到资源的使用效率并影响着所提供服务的服务质量；同时，部署结果也决定了云平台数据中心所需要耗费的运维成本，尤其是能源开销成本。
-
-一般而言，虚拟机部署问题可以归结为经典的装箱问题，该问题已被证明为NP-Complete问题。使用确定性算法求解需要耗费大量的时间，不能满足资源调度的实时性需求。
-
-本文基于PM的CPU资源和内存资源的特点，引入内存资源共享机制，从CPU资源和内存资源两个维度考虑虚拟机部署问题。同时，描述了一种综合考虑服务质量和部署成本的部署需求。针对这一新型问题背景，我们采用模拟退火这一启发式算法来解决该部署问题。大量模拟实验结果表明：资源共享机制在保障低冲突率的前提下，可以有效的减少PM的使用数量;可以有效的均衡系统资源的负载，提供更好的服务质量。同时，当问题的需求变动时，算法可以通过修改评价模型来达到重新适应的目的。另外，模拟退火算法也适合并行策略，提高算法的效率。
+虚拟机部署问题是整个云计算的核心。能否高效率高性能的部署虚拟机请求和服务提供商的额成本和服务质量直接相关。虚拟机部署问题本质是一个多维装箱问题，该问题已经被证明属于NP-Hard问题。使用确定性算法解决虚拟机部署问题常常需要耗费大量的计算时间。本文描述了一种基于现实情境的部署需求，构造了一个基于模拟退火算法的启发式部署算法。从实验结果表明，本文方法在复杂需求下取得了比传统方法(FFD)更好的效果。
 \end{abstract}
 
 \keywords{云计算，虚拟机部署问题，模拟退火算法}
 
 \begin{englishabstract}
-Cloud computing is under the spotlight nowadays. As a new type of computing model, cloud computing utilizes resources more effectively. The high pace developing of cloud computing depends on the virtualization technique. A virtualized server is divided into independent virtual machines\thinspace(VMs). Allocating and using VM means using resources more effectively. A core prolem in virtualization technique is VM placement problem, which means the stretagy of placing VMs into physical machines\thinspace(PMs).
-
-Therefore, how can we provide high quality service and reduce the cost depends on how well we solve the VM placement problem. Generally, the VM placement problem can be reduced to a classic bin packing problem, which had been proved to a NP-Complete problem. Solving it using a deterministic algorithm may need huge amount of time which usually cannot be afforded to meet the real-time needs.
-
-In this paper, we analyzed the features of CPU resources and RAM resources and introduce a shared-memory scenario. To meet the service quality and cost needs at the same time, we proposed a algorithm based on the simulated annealing algorithm. The experimental result shows that our algorithm diminished the amount of used PMs and achieves a more balanced load which is better than the classic first fit approach generates.
-
+The problem of virtual machine placement is at the core of cloud computing. The VM place problem is a reality extend of Bin Packing Problem, who had been proved to be NP-Hard problem. Using deterministic algorithms would cost vastly. In this paper, we proposed a modified Simulated Annealing alheuristic algorithm to solve a real-based VM placement problem. Experimental results shows that our methods achieves better performance than existing method on certain aspects.
 \end{englishabstract}
 
 \englishkeywords{Cloud Computing, Virtual Machine Placement,Simulated Annealing}

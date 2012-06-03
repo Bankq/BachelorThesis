@@ -146,7 +146,8 @@ def get_value(state):
     # Reconstruct PM_LIST
     plist = get_plist(state)
 
-    value = ram_stdev(plist) * cpu_stdev(plist) * count_active(plist) * 100
+    # value = ram_stdev(plist) * cpu_stdev(plist) * count_conflicts(plist) * count_active(plist) * 100
+    value = count_active(plist)
     # value = ram_stdev(plist) * count_active(plist) * count_conflicts(plist)
     return value
 
@@ -214,7 +215,7 @@ def first_fit(vlist):
     state = [0] * VM_MAX
     for vi,v in enumerate(vlist):
         for pi,p in enumerate(plist):
-            if no_share_available(v,p):
+            if available(v,p):
                 assign(v,p) # udpate pm info
                 state[vi] = pi
                 break
@@ -277,22 +278,28 @@ def is_valid(state):
 # # print count_active(plist),cpu_stdev(plist),ram_stdev(plist),count_active(plist)*cpu_stdev(plist)*ram_stdev(plist)
 # print "Value: ",ff_value
 
-def test1(nv,np):
+def test(nv,np):
     global VM_MAX
     global PM_MAX
     global vm_list
     VM_MAX = nv
     PM_MAX = np
+    print nv,np
+
     vm_list = init()
-    state = first_fit(vm_list)
+    sa_state = sa(random_fit(vm_list))
+    ff_state = first_fit(vm_list)
 
     plist = get_plist(state)
     count = count_active(plist)
     ram = ram_stdev(plist)
     cpu = cpu_stdev(plist)
+    conf = count_conflicts(plist)
     value = get_value(state)
 
-    print "& FF' & N/A & %.3f & %.3f & %.3f & N/A \\\\" %(count,ram,cpu)
+    print count,ram,cpu,conf
+    print value
+    print '***'
 
 def test(nv,np):
     global vm_list
@@ -327,7 +334,7 @@ def test(nv,np):
     print "$ N_v = %d $ & FF & %.3f & %.3f & %.3f & %.3f & %.3f \\\\ " %(nv,ff_value,ff_ca,ff_ram,ff_cpu,ff_cc)
     print "\\hline"
 
-for n in range(200,1100,100):
-    print n,"***********"
-    for i in range(10):
-        test1(n,n)
+
+for n in range(100,1100,100):
+    for i in range(5):
+        test(n,n)

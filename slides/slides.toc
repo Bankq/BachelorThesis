@@ -1,6 +1,0 @@
-\beamer@endinputifotherversion {3.10pt}
-\beamer@sectionintoc {1}{研究背景}{3}{0}{1}
-\beamer@sectionintoc {2}{基于内存共享的虚拟机部署技术}{8}{0}{2}
-\beamer@subsectionintoc {2}{1}{算法设计}{13}{0}{2}
-\beamer@subsectionintoc {2}{2}{实验结果与结论}{15}{0}{2}
-\beamer@sectionintoc {3}{总结}{19}{0}{3}
